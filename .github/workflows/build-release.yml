@@ -53,17 +53,11 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Generate code with build_runner
-        run: |
-          # Run build_runner - allow to fail gracefully if no generators configured
-          flutter pub run build_runner build --delete-conflicting-outputs || echo "⚠️ No code generation configured, skipping"
-        continue-on-error: true
+      - name: Analyze code
+        run: flutter analyze
 
       - name: Run tests
         run: flutter test
-
-      - name: Analyze code
-        run: flutter analyze
 
       - name: Build APK (Release)
         run: |
