@@ -69,9 +69,11 @@ Place them in: `android/app/src/main/res/mipmap-*/ic_launcher.png`
 
 ## Font
 
-All text in logos uses **Geist Mono** font family with various weights:
+All text in logos uses **JetBrains Mono** font family with various weights:
 - Headers: 700 (Bold)
 - Body: 500 (Medium)
+
+Note: JetBrains Mono is a modern, professional monospace font perfect for technical applications.
 
 ## Usage in Code
 
