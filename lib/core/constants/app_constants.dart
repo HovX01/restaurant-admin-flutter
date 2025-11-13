@@ -1,3 +1,5 @@
+import 'package:json_annotation/json_annotation.dart';
+
 /// Application Constants
 class AppConstants {
   // App Information
@@ -36,13 +38,29 @@ class AppConstants {
 
 /// User Roles as defined in the API documentation
 enum UserRole {
-  admin('ADMIN'),
-  manager('MANAGER'),
-  kitchenStaff('KITCHEN_STAFF'),
-  deliveryStaff('DELIVERY_STAFF');
+  @JsonValue('ADMIN')
+  admin,
+  @JsonValue('MANAGER')
+  manager,
+  @JsonValue('KITCHEN_STAFF')
+  kitchenStaff,
+  @JsonValue('DELIVERY_STAFF')
+  deliveryStaff;
 
-  final String value;
-  const UserRole(this.value);
+  const UserRole();
+
+  String get value {
+    switch (this) {
+      case UserRole.admin:
+        return 'ADMIN';
+      case UserRole.manager:
+        return 'MANAGER';
+      case UserRole.kitchenStaff:
+        return 'KITCHEN_STAFF';
+      case UserRole.deliveryStaff:
+        return 'DELIVERY_STAFF';
+    }
+  }
 
   static UserRole fromString(String value) {
     return UserRole.values.firstWhere(
@@ -54,16 +72,41 @@ enum UserRole {
 
 /// Order Status as defined in the API documentation
 enum OrderStatus {
-  pending('PENDING'),
-  confirmed('CONFIRMED'),
-  preparing('PREPARING'),
-  ready('READY'),
-  delivering('DELIVERING'),
-  delivered('DELIVERED'),
-  cancelled('CANCELLED');
+  @JsonValue('PENDING')
+  pending,
+  @JsonValue('CONFIRMED')
+  confirmed,
+  @JsonValue('PREPARING')
+  preparing,
+  @JsonValue('READY')
+  ready,
+  @JsonValue('DELIVERING')
+  delivering,
+  @JsonValue('DELIVERED')
+  delivered,
+  @JsonValue('CANCELLED')
+  cancelled;
 
-  final String value;
-  const OrderStatus(this.value);
+  const OrderStatus();
+
+  String get value {
+    switch (this) {
+      case OrderStatus.pending:
+        return 'PENDING';
+      case OrderStatus.confirmed:
+        return 'CONFIRMED';
+      case OrderStatus.preparing:
+        return 'PREPARING';
+      case OrderStatus.ready:
+        return 'READY';
+      case OrderStatus.delivering:
+        return 'DELIVERING';
+      case OrderStatus.delivered:
+        return 'DELIVERED';
+      case OrderStatus.cancelled:
+        return 'CANCELLED';
+    }
+  }
 
   static OrderStatus fromString(String value) {
     return OrderStatus.values.firstWhere(
@@ -75,15 +118,37 @@ enum OrderStatus {
 
 /// Delivery Status as defined in the API documentation
 enum DeliveryStatus {
-  pending('PENDING'),
-  assigned('ASSIGNED'),
-  pickedUp('PICKED_UP'),
-  inTransit('IN_TRANSIT'),
-  delivered('DELIVERED'),
-  cancelled('CANCELLED');
+  @JsonValue('PENDING')
+  pending,
+  @JsonValue('ASSIGNED')
+  assigned,
+  @JsonValue('PICKED_UP')
+  pickedUp,
+  @JsonValue('IN_TRANSIT')
+  inTransit,
+  @JsonValue('DELIVERED')
+  delivered,
+  @JsonValue('CANCELLED')
+  cancelled;
 
-  final String value;
-  const DeliveryStatus(this.value);
+  const DeliveryStatus();
+
+  String get value {
+    switch (this) {
+      case DeliveryStatus.pending:
+        return 'PENDING';
+      case DeliveryStatus.assigned:
+        return 'ASSIGNED';
+      case DeliveryStatus.pickedUp:
+        return 'PICKED_UP';
+      case DeliveryStatus.inTransit:
+        return 'IN_TRANSIT';
+      case DeliveryStatus.delivered:
+        return 'DELIVERED';
+      case DeliveryStatus.cancelled:
+        return 'CANCELLED';
+    }
+  }
 
   static DeliveryStatus fromString(String value) {
     return DeliveryStatus.values.firstWhere(

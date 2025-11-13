@@ -1,10 +1,7 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'api_response.g.dart';
+import 'dart:convert';
 
 /// Generic API Response wrapper as defined in the documentation
 /// All API responses follow this consistent format
-@JsonSerializable(genericArgumentFactories: true)
 class ApiResponse<T> {
   final bool success;
   final String message;
@@ -22,16 +19,31 @@ class ApiResponse<T> {
 
   factory ApiResponse.fromJson(
     Map<String, dynamic> json,
-    T Function(Object? json) fromJsonT,
-  ) =>
-      _$ApiResponseFromJson(json, fromJsonT);
+    T Function(dynamic json)? fromJsonT,
+  ) {
+    return ApiResponse<T>(
+      success: json['success'] as bool,
+      message: json['message'] as String,
+      data: json['data'] != null && fromJsonT != null
+          ? fromJsonT(json['data'])
+          : json['data'] as T?,
+      error: json['error'] as String?,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+    );
+  }
 
-  Map<String, dynamic> toJson(Object Function(T value) toJsonT) =>
-      _$ApiResponseToJson(this, toJsonT);
+  Map<String, dynamic> toJson(Object? Function(T value)? toJsonT) {
+    return {
+      'success': success,
+      'message': message,
+      'data': data != null && toJsonT != null ? toJsonT(data as T) : data,
+      'error': error,
+      'timestamp': timestamp.toIso8601String(),
+    };
+  }
 }
 
 /// Paginated response wrapper for list endpoints
-@JsonSerializable(genericArgumentFactories: true)
 class PagedResponse<T> {
   final List<T> content;
   final int page;
@@ -51,10 +63,27 @@ class PagedResponse<T> {
 
   factory PagedResponse.fromJson(
     Map<String, dynamic> json,
-    T Function(Object? json) fromJsonT,
-  ) =>
-      _$PagedResponseFromJson(json, fromJsonT);
+    T Function(dynamic json) fromJsonT,
+  ) {
+    final contentList = json['content'] as List<dynamic>;
+    return PagedResponse<T>(
+      content: contentList.map((item) => fromJsonT(item)).toList(),
+      page: json['page'] as int? ?? json['number'] as int? ?? 0,
+      size: json['size'] as int? ?? 20,
+      totalElements: json['totalElements'] as int? ?? 0,
+      totalPages: json['totalPages'] as int? ?? 0,
+      last: json['last'] as bool? ?? false,
+    );
+  }
 
-  Map<String, dynamic> toJson(Object Function(T value) toJsonT) =>
-      _$PagedResponseToJson(this, toJsonT);
+  Map<String, dynamic> toJson(Object? Function(T value) toJsonT) {
+    return {
+      'content': content.map((item) => toJsonT(item)).toList(),
+      'page': page,
+      'size': size,
+      'totalElements': totalElements,
+      'totalPages': totalPages,
+      'last': last,
+    };
+  }
 }
