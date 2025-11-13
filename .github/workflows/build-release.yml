@@ -1,0 +1,196 @@
+name: Build Release APK and AAB
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build-release:
+    name: Build Release APK & AAB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get version from tag or input
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Generate code with build_runner
+        run: |
+          flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Analyze code
+        run: flutter analyze
+
+      - name: Build APK (Release)
+        run: |
+          flutter build apk --release --split-per-abi
+          echo "✅ APK built successfully"
+
+      - name: Build App Bundle (Release)
+        run: |
+          flutter build appbundle --release
+          echo "✅ AAB built successfully"
+
+      - name: Get build info
+        id: build_info
+        run: |
+          # Get APK sizes
+          APK_ARM64=$(du -h build/app/outputs/flutter-apk/app-arm64-v8a-release.apk | cut -f1)
+          APK_ARMEABI=$(du -h build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk | cut -f1)
+          APK_X86_64=$(du -h build/app/outputs/flutter-apk/app-x86_64-release.apk | cut -f1)
+          AAB_SIZE=$(du -h build/app/outputs/bundle/release/app-release.aab | cut -f1)
+
+          echo "apk_arm64_size=$APK_ARM64" >> $GITHUB_OUTPUT
+          echo "apk_armeabi_size=$APK_ARMEABI" >> $GITHUB_OUTPUT
+          echo "apk_x86_64_size=$APK_X86_64" >> $GITHUB_OUTPUT
+          echo "aab_size=$AAB_SIZE" >> $GITHUB_OUTPUT
+
+      - name: Rename artifacts
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          mkdir -p release_artifacts
+
+          # Copy and rename APKs
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "release_artifacts/restaurant-admin-${VERSION}-arm64-v8a.apk"
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "release_artifacts/restaurant-admin-${VERSION}-armeabi-v7a.apk"
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk "release_artifacts/restaurant-admin-${VERSION}-x86_64.apk"
+
+          # Copy AAB
+          cp build/app/outputs/bundle/release/app-release.aab "release_artifacts/restaurant-admin-${VERSION}.aab"
+
+          echo "✅ Artifacts renamed and copied to release_artifacts/"
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apks-${{ steps.version.outputs.version }}
+          path: |
+            release_artifacts/*.apk
+          retention-days: 90
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-aab-${{ steps.version.outputs.version }}
+          path: |
+            release_artifacts/*.aab
+          retention-days: 90
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            release_artifacts/*.apk
+            release_artifacts/*.aab
+          body: |
+            ## 📱 Restaurant Admin Flutter App - ${{ steps.version.outputs.version }}
+
+            ### 📦 Downloads
+
+            **APK Files** (Install directly on Android devices):
+            - `restaurant-admin-${{ steps.version.outputs.version }}-arm64-v8a.apk` - For most modern devices (${{ steps.build_info.outputs.apk_arm64_size }})
+            - `restaurant-admin-${{ steps.version.outputs.version }}-armeabi-v7a.apk` - For older devices (${{ steps.build_info.outputs.apk_armeabi_size }})
+            - `restaurant-admin-${{ steps.version.outputs.version }}-x86_64.apk` - For x86 devices/emulators (${{ steps.build_info.outputs.apk_x86_64_size }})
+
+            **App Bundle** (For Google Play Store):
+            - `restaurant-admin-${{ steps.version.outputs.version }}.aab` - Android App Bundle (${{ steps.build_info.outputs.aab_size }})
+
+            ### 📲 Installation Instructions
+
+            1. Download the appropriate APK for your device (arm64-v8a for most modern phones)
+            2. Enable "Install from Unknown Sources" in your Android settings
+            3. Open the APK file and follow the installation prompts
+
+            **Using ADB**:
+            ```bash
+            adb install restaurant-admin-${{ steps.version.outputs.version }}-arm64-v8a.apk
+            ```
+
+            ### ⚙️ Configuration
+
+            - **Backend URL**: Update in `Settings` after installation or modify `lib/core/config/api_config.dart` before building
+            - **Default Backend**: `http://10.0.2.2:8080/api` (for emulator)
+
+            ### 🧪 Test Accounts
+
+            - **Admin**: `admin / password123`
+            - **Manager**: `manager / password123`
+            - **Kitchen**: `kitchen / password123`
+            - **Driver**: `driver / password123`
+
+            ### 🎯 Features
+
+            - JWT authentication with secure storage
+            - Real-time order updates via WebSocket
+            - Role-based access control
+            - Modern Material Design 3 UI
+            - Order and product management
+            - User profile and settings
+
+            ### 📋 Requirements
+
+            - Android 7.0 (API 24) or higher
+            - Backend server running (Restaurant Admin System)
+            - Internet connection for API access
+
+            ### 🔗 Resources
+
+            - [Backend Repository](https://github.com/HovX01/restaurant-admin-flutter)
+            - [API Documentation](https://github.com/HovX01/restaurant-admin-flutter/tree/main/docs/api)
+            - [Installation Guide](https://github.com/HovX01/restaurant-admin-flutter#-getting-started)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create build summary
+        run: |
+          echo "## 🚀 Release Build Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Built Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| File | Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| APK (arm64-v8a) | ${{ steps.build_info.outputs.apk_arm64_size }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| APK (armeabi-v7a) | ${{ steps.build_info.outputs.apk_armeabi_size }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| APK (x86_64) | ${{ steps.build_info.outputs.apk_x86_64_size }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| AAB (App Bundle) | ${{ steps.build_info.outputs.aab_size }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📥 Download" >> $GITHUB_STEP_SUMMARY
+          echo "All artifacts are available in the Artifacts section or in the GitHub Release." >> $GITHUB_STEP_SUMMARY

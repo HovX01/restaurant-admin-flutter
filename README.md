@@ -211,6 +211,47 @@ The app uses STOMP over WebSocket for real-time updates:
 - Order status changes reflect immediately
 - Product availability updates in real-time
 
+## 🤖 CI/CD - GitHub Actions
+
+### Automated Builds
+
+This project includes GitHub Actions workflows for automated building:
+
+#### 1. **Build APK Workflow** (`.github/workflows/build-apk.yml`)
+- Triggers on push to main, develop, or claude/* branches
+- Triggers on pull requests
+- Builds debug APK for PRs, release APK for main
+- Uploads artifacts for 30 days
+- Comments on PRs with download instructions
+
+#### 2. **Build Release Workflow** (`.github/workflows/build-release.yml`)
+- Triggers on version tags (e.g., `v1.0.0`)
+- Builds multiple APK variants (arm64, armeabi, x86_64)
+- Builds App Bundle (AAB) for Google Play
+- Creates GitHub Release with all artifacts
+- Artifacts kept for 90 days
+
+### How to Use
+
+**Get APK from PR**:
+1. Open your pull request
+2. Wait for workflow to complete
+3. Check the comment with download link
+4. Go to Actions > Artifacts to download
+
+**Create a Release**:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+**Manual Build**:
+1. Go to Actions tab
+2. Select workflow
+3. Click "Run workflow"
+
+For complete CI/CD documentation, see [CI/CD Guide](docs/CI-CD-GUIDE.md).
+
 ## 🧪 Testing
 
 ### Running Tests

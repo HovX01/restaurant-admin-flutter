@@ -1,0 +1,164 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'claude/**'
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Verify Flutter installation
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Generate code with build_runner
+        run: |
+          flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: Analyze code
+        run: flutter analyze
+        continue-on-error: true
+
+      - name: Run tests
+        run: flutter test
+        continue-on-error: true
+
+      - name: Build APK (Debug)
+        if: github.event_name == 'pull_request' || github.ref != 'refs/heads/main'
+        run: |
+          flutter build apk --debug
+          echo "APK_TYPE=debug" >> $GITHUB_ENV
+
+      - name: Build APK (Release)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          flutter build apk --release
+          echo "APK_TYPE=release" >> $GITHUB_ENV
+
+      - name: Get APK path and info
+        id: apk_info
+        run: |
+          if [ "${{ env.APK_TYPE }}" = "release" ]; then
+            APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
+          else
+            APK_PATH="build/app/outputs/flutter-apk/app-debug.apk"
+          fi
+
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+          echo "apk_name=restaurant-admin-${{ env.APK_TYPE }}-$(date +%Y%m%d-%H%M%S).apk" >> $GITHUB_OUTPUT
+
+          if [ -f "$APK_PATH" ]; then
+            APK_SIZE=$(du -h "$APK_PATH" | cut -f1)
+            echo "apk_size=$APK_SIZE" >> $GITHUB_OUTPUT
+            echo "✅ APK built successfully: $APK_PATH ($APK_SIZE)"
+          else
+            echo "❌ APK not found at $APK_PATH"
+            exit 1
+          fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk_info.outputs.apk_name }}
+          path: ${{ steps.apk_info.outputs.apk_path }}
+          retention-days: 30
+
+      - name: Create build summary
+        run: |
+          echo "## 📱 APK Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Type**: ${{ env.APK_TYPE }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **APK Size**: ${{ steps.apk_info.outputs.apk_size }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Flutter Version**: $(flutter --version | head -n1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Download" >> $GITHUB_STEP_SUMMARY
+          echo "The APK is available as an artifact in this workflow run." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎯 Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Download the APK from the artifacts section" >> $GITHUB_STEP_SUMMARY
+          echo "2. Install on Android device: \`adb install app.apk\`" >> $GITHUB_STEP_SUMMARY
+          echo "3. Or transfer to device and install manually" >> $GITHUB_STEP_SUMMARY
+
+      - name: Comment on PR (if PR)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const apkSize = '${{ steps.apk_info.outputs.apk_size }}';
+            const apkName = '${{ steps.apk_info.outputs.apk_name }}';
+
+            const comment = `## 📱 APK Build Complete!
+
+            ✅ **Android APK** has been successfully built for this PR.
+
+            ### Build Information
+            - **Build Type**: Debug
+            - **APK Size**: ${apkSize}
+            - **File Name**: \`${apkName}\`
+
+            ### 📥 How to Download
+            1. Go to the [Actions tab](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            2. Scroll down to **Artifacts**
+            3. Download \`${apkName}\`
+
+            ### 📲 How to Install
+            \`\`\`bash
+            # Option 1: Using ADB
+            adb install ${apkName}
+
+            # Option 2: Transfer to device
+            # Transfer the APK to your Android device and install manually
+            \`\`\`
+
+            ### ⚙️ Configuration
+            - Backend URL: \`http://10.0.2.2:8080/api\` (for emulator)
+            - Update in \`lib/core/config/api_config.dart\` for physical devices
+
+            ### 🧪 Test Accounts
+            - **Admin**: \`admin / password123\`
+            - **Manager**: \`manager / password123\`
+            - **Kitchen**: \`kitchen / password123\`
+            - **Driver**: \`driver / password123\`
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
