@@ -12,7 +12,7 @@ dependencies:
 
   # UI & Material Design 3
   cupertino_icons: ^1.0.6
-  google_fonts: ^6.1.0
+  google_fonts: ^6.2.1
   flutter_svg: ^2.0.9
   cached_network_image: ^3.3.1
 

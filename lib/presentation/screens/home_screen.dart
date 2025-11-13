@@ -83,7 +83,7 @@ class ProfileScreen extends StatelessWidget {
                     backgroundColor: Theme.of(context).colorScheme.primaryContainer,
                     child: Text(
                       user.username.substring(0, 1).toUpperCase(),
-                      style: TextTheme.of(context).displayMedium?.copyWith(
+                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
                             color: Theme.of(context).colorScheme.onPrimaryContainer,
                           ),
                     ),
