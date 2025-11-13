@@ -159,7 +159,7 @@ class ProductCard extends StatelessWidget {
                       imageUrl: imageUrl!,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
-                        color: Theme.of(context).colorScheme.surfaceVariant,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
                         child: const Center(
                           child: CircularProgressIndicator(),
                         ),
@@ -235,7 +235,7 @@ class ProductCard extends StatelessWidget {
 
   Widget _buildPlaceholder(BuildContext context) {
     return Container(
-      color: Theme.of(context).colorScheme.surfaceVariant,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
       child: Icon(
         Icons.fastfood,
         size: 48,

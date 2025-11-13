@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 /// Generic API Response wrapper as defined in the documentation
 /// All API responses follow this consistent format
 class ApiResponse<T> {
