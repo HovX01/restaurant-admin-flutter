@@ -110,6 +110,16 @@ coverage/
 # Symbols
 app.*.symbols
 
+# Generated files
+*.g.dart
+*.freezed.dart
+
+# Exceptions for manually created model serialization files
+!lib/data/models/user_model.g.dart
+!lib/data/models/order_model.g.dart
+!lib/data/models/product_model.g.dart
+!lib/data/models/delivery_model.g.dart
+
 # Exceptions to above rules.
 !**/ios/**/default.mode1v3
 !**/ios/**/default.mode2v3
