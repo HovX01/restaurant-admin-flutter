@@ -47,8 +47,6 @@ enum UserRole {
   @JsonValue('DELIVERY_STAFF')
   deliveryStaff;
 
-  const UserRole();
-
   String get value {
     switch (this) {
       case UserRole.admin:
@@ -86,8 +84,6 @@ enum OrderStatus {
   delivered,
   @JsonValue('CANCELLED')
   cancelled;
-
-  const OrderStatus();
 
   String get value {
     switch (this) {
@@ -130,8 +126,6 @@ enum DeliveryStatus {
   delivered,
   @JsonValue('CANCELLED')
   cancelled;
-
-  const DeliveryStatus();
 
   String get value {
     switch (this) {
