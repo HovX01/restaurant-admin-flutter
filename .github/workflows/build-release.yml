@@ -50,6 +50,24 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
 
+      - name: Generate debug keystore for CI
+        run: |
+          # Create .android directory if it doesn't exist
+          mkdir -p ~/.android
+
+          # Generate debug keystore with default Android debug credentials
+          keytool -genkey -v \
+            -keystore ~/.android/debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+          echo "✅ Debug keystore generated successfully"
+
       - name: Get dependencies
         run: flutter pub get
 
