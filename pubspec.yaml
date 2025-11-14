@@ -45,6 +45,7 @@ dev_dependencies:
   flutter_lints: ^3.0.1
   build_runner: ^2.4.7
   json_serializable: ^6.7.1
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -57,3 +58,13 @@ flutter:
   #   - family: CustomFont
   #     fonts:
   #       - asset: assets/fonts/CustomFont-Regular.ttf
+
+# App Launcher Icons Configuration
+# Run: flutter pub run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/logo_icon.svg"
+  adaptive_icon_background: "#1976D2"
+  adaptive_icon_foreground: "assets/images/logo_icon.svg"
+  remove_alpha_ios: true

@@ -21,7 +21,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      textTheme: GoogleFonts.interTextTheme(),
+      textTheme: GoogleFonts.jetBrainsMonoTextTheme(),
 
       // AppBar theme
       appBarTheme: AppBarTheme(
@@ -106,7 +106,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+      textTheme: GoogleFonts.jetBrainsMonoTextTheme(ThemeData.dark().textTheme),
 
       // AppBar theme
       appBarTheme: AppBarTheme(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 
@@ -52,24 +53,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // App Icon/Logo
-                  Icon(
-                    Icons.restaurant_menu,
-                    size: 80,
-                    color: Theme.of(context).colorScheme.primary,
+                  // App Logo
+                  SvgPicture.asset(
+                    'assets/images/logo.svg',
+                    width: 180,
+                    height: 180,
                   ),
-                  const SizedBox(height: 16),
-
-                  // App Title
-                  Text(
-                    'Restaurant Admin',
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 24),
 
                   // Subtitle
                   Text(
@@ -189,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceVariant,
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
