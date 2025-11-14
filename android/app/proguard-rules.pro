@@ -6,6 +6,10 @@
 -keep class io.flutter.**  { *; }
 -keep class io.flutter.plugins.**  { *; }
 
+# Google Play Core (optional Flutter features - deferred components)
+-dontwarn com.google.android.play.core.**
+-keep class com.google.android.play.core.** { *; }
+
 # Gson
 -keepattributes Signature
 -keepattributes *Annotation*
